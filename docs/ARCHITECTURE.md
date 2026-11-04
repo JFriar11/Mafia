@@ -60,6 +60,10 @@ Empty night groups are skipped automatically. Vis is also skipped after spending
 
 Deaths resolve at dawn, allowing a targeted player to take their scheduled turn. Medic protection cancels night kills against the protected player. Cop results use the target’s alignment before that night’s recruitment. Day actions such as Kazee’s sacrifice can also end the game immediately or invalidate an existing nominee pair.
 
+## Public morning report
+
+At dawn, the engine stores a structured report containing eliminated players’ names, the count of actual prevented kills, and living players silenced for the day. It does not include protected players’ names, recruitment, or Cop investigation results. The full-width report appears before game controls for living players and spectators, remains visible throughout the day, and includes living-player acknowledgements before nominations.
+
 ## Role is different from team
 
 A player has a **role**, such as Medic, and a **team**, Town or Mafia. The role defines available powers; the team defines allies and victory conditions.

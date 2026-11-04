@@ -12,7 +12,7 @@ React · TypeScript · JavaScript · Cloudflare Workers · D1/SQLite · Drizzle 
 
 - Developed and deployed a mobile-friendly multiplayer web app with private roles, configurable recruitment, ordered night turns, nominations, and voting.
 - Implemented a server-authoritative game state machine and optimistic concurrency using revision-checked SQLite updates to prevent simultaneous player requests from overwriting shared state.
-- Separated player roles from team membership, enforced player-specific data visibility, and verified gameplay with 41 automated tests and multi-session API integration scenarios.
+- Separated player roles from team membership, enforced player-specific data visibility, and verified gameplay with 44 automated tests and multi-session API integration scenarios.
 
 For a shorter resume, combine the first two bullets and keep the testing bullet.
 
@@ -35,7 +35,7 @@ For a shorter resume, combine the first two bullets and keep the testing bullet.
 
 ## Keep claims precise
 
-The current verified evidence is 41 unit tests and integration scenarios, including a nine-player API test against the live deployment. The lobby supports configuring 4–24 players, but that is a product limit, not evidence of a 24-player load test or large-scale adoption.
+The current verified evidence is 44 unit tests and integration scenarios, including a nine-player API test against the live deployment. The lobby supports configuring 4–24 players, but that is a product limit, not evidence of a 24-player load test or large-scale adoption.
 
 Describe synchronization as HTTP polling, not WebSockets. TypeScript covers the interface and project checks; the rules engine is JavaScript, and the route currently disables TypeScript checking. Phone vibration support is best-effort, not universal. Avoid claiming production user counts, performance improvements, test coverage percentages, or security guarantees that have not been measured.
 

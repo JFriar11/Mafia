@@ -52,8 +52,12 @@ function resolveNight(g) {
  for(const [id,a] of Object.entries(g.actions)){const p=g.players.find(p=>p.id===id);if(!p?.alive||!a.target)continue;if(a.kind==='save')saves.add(a.target);if(a.kind==='kill')kills.add(a.target);if(a.kind==='silence')silence.add(a.target);if(a.kind==='recruit')recruits.push(a.target);if(a.kind==='check'){const t=g.players.find(p=>p.id===a.target);(g.intel[id]??=[]).push({round:g.round,name:t.name,mafia:mafia(t)})}}
  for(const p of g.players){p.silenced=silence.has(p.id);if(kills.has(p.id)&&!saves.has(p.id))p.alive=false}
  for(const id of recruits){const p=g.players.find(p=>p.id===id);if(p?.alive){p.team='Mafia';p.recruited=true}}
- const dead=g.players.filter(p=>kills.has(p.id)&&!saves.has(p.id)).map(p=>p.name);
- g.log.push(`Night ${g.round}: ${dead.length?dead.join(', ')+' died.':'No one died.'}`);
+ const deadPlayers=g.players.filter(p=>kills.has(p.id)&&!saves.has(p.id)).map(({id,name})=>({id,name}));
+ const silencedPlayers=g.players.filter(p=>p.alive&&p.silenced).map(({id,name})=>({id,name}));
+ const savedCount=[...kills].filter(id=>saves.has(id)).length;
+ const summary=[deadPlayers.length?deadPlayers.map(p=>p.name).join(', ')+' died.':'No one died.',savedCount?`${savedCount} player${savedCount===1?' was':'s were'} saved.`:'',silencedPlayers.length?`Silenced today: ${silencedPlayers.map(p=>p.name).join(', ')}.`:''].filter(Boolean).join(' ');
+ g.lastNight={round:g.round,deadPlayers,savedCount,silencedPlayers,summary};
+ g.log.push(`Night ${g.round}: ${summary}`);
  if(!win(g))reset(g,'day');
 }
 export function eligibleVoters(g) {return alive(g).filter(p=>!g.nominees.includes(p.id));}
@@ -73,7 +77,7 @@ export function act(g,token,type,data={}) {
  if(type==='config'){need(host&&g.phase==='lobby','Only the host can configure the lobby.');for(const r of Object.keys(ROLES)){const n=Number(data[r]??0);need(Number.isInteger(n)&&n>=0&&n<=24,'Invalid role count.');g.config[r]=n}return}
  if(type==='recruitLimit'){need(host&&g.phase==='lobby','Only the host can set recruitments before the game.');const n=Number(data.count);need(Number.isInteger(n)&&n>=0&&n<=24,'Choose between 0 and 24 recruitments.');g.recruitLimit=n;return}
  if(type==='kick'){need(host&&g.phase==='lobby'&&data.target!==p.id,'Cannot remove that player.');g.players=g.players.filter(x=>x.id!==data.target);return}
- if(type==='restart'){need(host&&g.phase==='end','Only the host can start a rematch.');g.players.forEach(p=>{p.alive=true;p.role='Civi';p.team='Town';p.recruited=false;p.used=false;p.silenced=false});g.winner=null;g.judgeUsed=false;g.recruitsUsed=0;g.intel={};g.log=[];g.pending=null;g.nightStep=null;g.nightParticipants=[];reset(g,'lobby');return}
+ if(type==='restart'){need(host&&g.phase==='end','Only the host can start a rematch.');g.players.forEach(p=>{p.alive=true;p.role='Civi';p.team='Town';p.recruited=false;p.used=false;p.silenced=false});g.winner=null;g.judgeUsed=false;g.recruitsUsed=0;g.intel={};g.log=[];g.lastNight=null;g.pending=null;g.nightStep=null;g.nightParticipants=[];reset(g,'lobby');return}
  if(type==='start'){need(host&&g.phase==='lobby','Only the host can start.');need(g.players.length>=4,'At least 4 players are needed.');const deck=Object.entries(g.config).flatMap(([r,n])=>Array(n).fill(r));need(deck.length===g.players.length,'Role total must equal the player count.');const m=deck.filter(r=>ROLES[r].team==='Mafia').length;need(m>0&&m<deck.length-m,'Include Mafia and give Town a starting majority.');need((g.config.Godfather??0)<=1&&(g.config.Judge??0)<=1,'Use at most one Godfather and one Judge.');for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}g.players.forEach((p,i)=>{p.role=deck[i];p.team=ROLES[p.role].team;p.recruited=false});g.recruitsUsed=0;g.round=1;reset(g,'roles');return}
  if(type==='skipBlock'){need(host,'Only the host can skip the block.');need(['day','nominate','secondary','vote'].includes(g.phase),'The block can only be skipped before the verdict.');skipBlock(g,'The host skipped the block.');return}
  if(type==='force'){need(host,'Only the host can continue for missing players.');need(['roles','night','day','nominate','secondary','vote','verdict'].includes(g.phase),'No phase to advance.');if(g.phase==='verdict')finishVote(g,false);else if(g.phase==='secondary'){g.nominees.push(alive(g).find(x=>x.id!==g.nominees[0]).id);g.votes={};reset(g,'vote')}else{g.ready=(g.phase==='night'?nightParticipants(g):g.phase==='vote'?eligibleVoters(g):alive(g)).map(p=>p.id);progress(g)}return}

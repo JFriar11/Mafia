@@ -13,7 +13,7 @@ Originally a SwiftUI/Firebase project, Mafia evolved into a deployed web app wit
 - **Conflict-safe multiplayer updates:** optimistic concurrency with a database revision check and bounded retries prevents simultaneous requests from silently overwriting each other.
 - **Player-specific privacy:** the server returns each player a filtered view, withholding other teams’ roles, individual ballots, night actions, and private investigation notes.
 - **Domain modeling:** role and team are separate, so a recruited Medic remains a Medic while joining the Mafia and retaining their remaining powers.
-- **Verification:** 41 automated rule and turn-alert tests, plus API integration scripts for the game loop, recruitment, and ordered night turns. A nine-player API scenario has been checked against the deployed app.
+- **Verification:** 44 automated rule and turn-alert tests, plus API integration scripts for the game loop, recruitment, and ordered night turns. A nine-player API scenario has been checked against the deployed app.
 
 ## How to play
 
