@@ -11,6 +11,8 @@ import FirebaseDatabase
 final class PhaseManager {
     private let db: DatabaseReference
     private let code: String
+    private let observerManager = ObserverManager()
+    private var isObserving = false
 
     init(code: String) {
         self.code = code
@@ -24,36 +26,62 @@ final class PhaseManager {
         case .night: .dayRecap
         case .dayRecap: .block
         case .block: .vote
-        case .vote: .night   // TODO: switch to .end if win conditions met
+        case .vote: .night
         case .end: .lobby
         }
         db.child("meta").updateChildValues(["phase": next.rawValue])
     }
 
-    /// Host-only: when all players' `done == true`, advance the phase and reset flags.
-    func observeCompletion(for phase: Phase) {
-        db.child("players").observe(.value) { snapshot in
-            var allDone = true
-            for case let child as DataSnapshot in snapshot.children {
-                if let data = child.value as? [String: Any],
-                   (data["alive"] as? Bool ?? true),
-                   (data["done"] as? Bool == false) {
+    /// Host-only: Start observing for phase completion
+    func startObservingCompletion(for phase: Phase) {
+        guard !isObserving else { return }
+        isObserving = true
+        
+        observerManager.observe(db.child("players")) { [weak self] snapshot in
+            self?.checkCompletion(for: phase, snapshot: snapshot)
+        }
+    }
+    
+    /// Stop observing (call this when leaving a phase)
+    func stopObserving() {
+        observerManager.removeAllObservers()
+        isObserving = false
+    }
+    
+    private func checkCompletion(for phase: Phase, snapshot: DataSnapshot) {
+        var allDone = true
+        var aliveCount = 0
+        
+        for case let child as DataSnapshot in snapshot.children {
+            if let data = child.value as? [String: Any],
+               (data["alive"] as? Bool ?? true) {
+                aliveCount += 1
+                if data["done"] as? Bool == false {
                     allDone = false
                 }
             }
-            if allDone {
-                self.advancePhase(from: phase)
-                self.resetPlayersDone()
-            }
         }
+        
+        // Only advance if we have players and all are done
+        guard aliveCount > 0 && allDone else { return }
+        
+        // Stop observing before advancing to prevent duplicate triggers
+        stopObserving()
+        
+        advancePhase(from: phase)
+        resetPlayersDone()
     }
 
     private func resetPlayersDone() {
-        db.child("players").observeSingleEvent(of: .value) { snapshot in
+        observerManager.observeSingleEvent(db.child("players")) { [weak self] snapshot in
+            guard let self else { return }
             for case let child as DataSnapshot in snapshot.children {
                 self.db.child("players").child(child.key).updateChildValues(["done": false])
             }
         }
     }
+    
+    deinit {
+        stopObserving()
+    }
 }
-

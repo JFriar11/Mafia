@@ -1,0 +1,5 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {turnAlertKey,vibrateForTurn} from '../lib/turn-alert.mjs';
+test('only the current, unfinished group gets a cue key',()=>{const g={code:'123456',phase:'night',round:2,nightStep:'cop',nightMine:true,ready:[],me:'a'};assert.equal(turnAlertKey(g),'123456:2:cop:a');assert.equal(turnAlertKey({...g,nightMine:false}),null);assert.equal(turnAlertKey({...g,ready:['a']}),null);assert.equal(turnAlertKey({...g,phase:'day'}),null);assert.notEqual(turnAlertKey(g),turnAlertKey({...g,nightStep:'mafia'}));assert.notEqual(turnAlertKey(g),turnAlertKey({...g,round:3}))});
+test('vibration uses the intended short pattern and fails safely if unsupported or denied',()=>{let pattern;assert.equal(vibrateForTurn({vibrate(p){pattern=p;return true}}),true);assert.deepEqual(pattern,[220,120,220]);assert.equal(vibrateForTurn({}),false);assert.equal(vibrateForTurn({vibrate(){return false}}),false);assert.equal(vibrateForTurn({vibrate(){throw Error('denied')}}),false)});

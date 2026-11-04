@@ -11,7 +11,7 @@ import Combine
 
 class PhaseListener: ObservableObject {
     @Published var phase: String = Phase.lobby.rawValue
-    private var handle: DatabaseHandle?
+    private let observerManager = ObserverManager()
     private let dbRef: DatabaseReference
 
     init(code: String) {
@@ -19,15 +19,17 @@ class PhaseListener: ObservableObject {
             .child("lobbies")
             .child(code)
             .child("meta/phase")
-
-        handle = dbRef.observe(.value) { snapshot in
+        
+        observerManager.observe(dbRef) { [weak self] snapshot in
             if let newPhase = snapshot.value as? String {
-                DispatchQueue.main.async { self.phase = newPhase }
+                DispatchQueue.main.async {
+                    self?.phase = newPhase
+                }
             }
         }
     }
-
+    
     deinit {
-        if let handle { dbRef.removeObserver(withHandle: handle) }
+        observerManager.removeAllObservers()
     }
 }

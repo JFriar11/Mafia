@@ -1,0 +1,15 @@
+# Local operating-system and editor state
+.DS_Store
+*.swp
+xcuserdata/
+*.xcuserstate
+
+# Local credentials and assistant state
+.env*
+.dev.vars*
+*.pem
+.aws/
+.agents/
+.codex/
+
+# The web app also maintains its own build/runtime ignore rules.

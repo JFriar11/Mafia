@@ -22,31 +22,59 @@ struct DayRecapView: View {
     private var db: DatabaseReference {
         Database.database().reference().child("lobbies").child(code)
     }
-    private var manager: PhaseManager { PhaseManager(code: code) }
+    
+    private let phaseManager: PhaseManager
+    
+    init(code: String, playerName: String, isHost: Bool) {
+        self.code = code
+        self.playerName = playerName
+        self.isHost = isHost
+        self.phaseManager = PhaseManager(code: code)
+    }
 
     var body: some View {
         VStack(spacing: 16) {
             Text("🌅 Day Recap").font(.largeTitle)
 
             if !nightDead.isEmpty {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("During the night:").font(.headline)
-                    ForEach(nightDead, id: \.self) { Text("💀 \($0)") }
+                    ForEach(nightDead, id: \.self) { name in
+                        HStack {
+                            Text("💀")
+                            Text(name)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(10)
             } else {
-                Text("No one died during the night.").font(.headline)
+                Text("No one died during the night.")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(10)
             }
 
             if let dayEliminated {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Yesterday's vote eliminated:").font(.headline)
-                    Text("☠️ \(dayEliminated)")
+                    HStack {
+                        Text("☠️")
+                        Text(dayEliminated)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(10)
             }
 
-            Text(summary).foregroundColor(.secondary)
+            Text(summary)
+                .foregroundColor(.secondary)
+                .padding()
 
             Button("Continue") {
                 db.child("players").child(playerName).updateChildValues(["done": true])
@@ -61,10 +89,19 @@ struct DayRecapView: View {
         .padding()
         .onAppear {
             loadRecap()
-            if isHost { manager.observeCompletion(for: .dayRecap) }
+            if isHost {
+                phaseManager.startObservingCompletion(for: .dayRecap)
+            }
+        }
+        .onDisappear {
+            if isHost {
+                phaseManager.stopObserving()
+            }
         }
         .onChange(of: phaseListener.phase) { newPhase in
-            if newPhase == Phase.block.rawValue { showBlock = true }
+            if newPhase == Phase.block.rawValue {
+                showBlock = true
+            }
         }
     }
 
@@ -74,7 +111,9 @@ struct DayRecapView: View {
             db.child("recap").child("\(night)").observeSingleEvent(of: .value) { r in
                 if let d = r.value as? [String: Any] {
                     summary = (d["summary"] as? String) ?? summary
-                    if let arr = d["deadPlayers"] as? [String] { nightDead = arr }
+                    if let arr = d["deadPlayers"] as? [String] {
+                        nightDead = arr
+                    }
                     dayEliminated = d["dayEliminated"] as? String
                 }
             }

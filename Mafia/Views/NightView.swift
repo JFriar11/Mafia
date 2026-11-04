@@ -27,57 +27,96 @@ struct NightView: View {
     }
 
     private let resolver: NightResolver
+    
     init(code: String, playerName: String, isHost: Bool) {
         self.code = code
         self.playerName = playerName
         self.isHost = isHost
+        // Use the new resolver (rename if you renamed ImprovedNightResolverV2 to NightResolver)
         self.resolver = NightResolver(code: code)
     }
 
     var body: some View {
         VStack(spacing: 16) {
             Text("🌙 Night Phase").font(.largeTitle)
-            Text("Role: \(role)").foregroundColor(.secondary)
+            Text("Role: \(role)")
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
 
             if isPassive(role) {
-                Text("You sleep peacefully…")
-                    .font(.headline)
-                    .padding(.top, 12)
-                Button("I'm in bed 😴") {
-                    db.child("players").child(playerName).updateChildValues(["done": true])
-                }
-                .buttonStyle(.borderedProminent)
-            } else {
-                if role == "Godfather" {
-                    Picker("Action", selection: $gfMode) {
-                        Text("Kill").tag(ActionKind.kill)
-                        Text("Recruit").tag(ActionKind.recruit)
+                VStack(spacing: 12) {
+                    Text("You sleep peacefully…")
+                        .font(.headline)
+                        .padding(.top, 12)
+                    
+                    Text("You have no night action")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Button("I'm in bed 😴") {
+                        db.child("players").child(playerName).updateChildValues(["done": true])
                     }
-                    .pickerStyle(.segmented)
+                    .buttonStyle(.borderedProminent)
                 }
+            } else {
+                VStack(spacing: 16) {
+                    if role == "Godfather" {
+                        Picker("Action", selection: $gfMode) {
+                            Text("Kill").tag(ActionKind.kill)
+                            Text("Recruit").tag(ActionKind.recruit)
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    
+                    if role == "Vis" && usedOneShot {
+                        Text("You've already used your one-time kill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .padding(8)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
+                    }
 
-                Text("Choose a target").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Choose a target")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                ScrollView {
-                    ForEach(players.filter { $0 != playerName }, id: \.self) { n in
-                        Button {
-                            selectedTarget = n
-                        } label: {
-                            HStack {
-                                Text(n)
-                                Spacer()
-                                if selectedTarget == n { Image(systemName: "checkmark.circle.fill") }
+                    ScrollView {
+                        VStack(spacing: 8) {
+                            ForEach(players.filter { $0 != playerName }, id: \.self) { n in
+                                Button {
+                                    selectedTarget = n
+                                } label: {
+                                    HStack {
+                                        Text(n)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        if selectedTarget == n {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(
+                                        selectedTarget == n
+                                            ? Color.green.opacity(0.2)
+                                            : Color.gray.opacity(0.12)
+                                    )
+                                    .cornerRadius(10)
+                                }
                             }
-                            .padding()
-                            .background(Color.gray.opacity(0.12))
-                            .cornerRadius(10)
                         }
                     }
-                }
 
-                Button("Submit \(buttonLabel)") { submitAction() }
+                    Button("Submit \(buttonLabel)") {
+                        submitAction()
+                    }
                     .buttonStyle(.borderedProminent)
                     .disabled(!canAct)
+                }
             }
 
             NavigationLink("", isActive: $showRecap) {
@@ -89,10 +128,19 @@ struct NightView: View {
         .onAppear {
             loadSelf()
             loadPlayers()
-            if isHost { resolver.observeAndResolveNight() } // host resolves when all done
+            if isHost {
+                resolver.startObserving()
+            }
+        }
+        .onDisappear {
+            if isHost {
+                resolver.stopObserving()
+            }
         }
         .onChange(of: phaseListener.phase) { newPhase in
-            if newPhase == Phase.dayRecap.rawValue { showRecap = true }
+            if newPhase == Phase.dayRecap.rawValue {
+                showRecap = true
+            }
         }
     }
 
