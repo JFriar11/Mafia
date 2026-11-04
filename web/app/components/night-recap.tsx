@@ -40,7 +40,7 @@ export default function NightRecap({ game, busy, onRead }: {
             <strong>{report.deadPlayers.length}</strong>
             {report.deadPlayers.length ? (
               <ul>{report.deadPlayers.map(player => <li key={player.id}>{player.name}</li>)}</ul>
-            ) : <p>Everyone survived the night.</p>}
+            ) : <p>Mafia had a networking event.</p>}
           </div>
           <div className="recap-outcome">
             <div className="recap-outcome-label"><Shield size={17} aria-hidden="true" />SAVED</div>

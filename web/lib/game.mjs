@@ -55,7 +55,7 @@ function resolveNight(g) {
  const deadPlayers=g.players.filter(p=>kills.has(p.id)&&!saves.has(p.id)).map(({id,name})=>({id,name}));
  const silencedPlayers=g.players.filter(p=>p.alive&&p.silenced).map(({id,name})=>({id,name}));
  const savedCount=[...kills].filter(id=>saves.has(id)).length;
- const summary=[deadPlayers.length?deadPlayers.map(p=>p.name).join(', ')+' died.':'No one died.',savedCount?`${savedCount} player${savedCount===1?' was':'s were'} saved.`:'',silencedPlayers.length?`Silenced today: ${silencedPlayers.map(p=>p.name).join(', ')}.`:''].filter(Boolean).join(' ');
+ const summary=[deadPlayers.length?deadPlayers.map(p=>p.name).join(', ')+' smoked.':'Mafia had a networking event.',savedCount?`${savedCount} player${savedCount===1?' was':'s were'} saved.`:'',silencedPlayers.length?`${silencedPlayers.map(p=>p.name).join(', ')} touched.`:''].filter(Boolean).join(' ');
  g.lastNight={round:g.round,deadPlayers,savedCount,silencedPlayers,summary};
  g.log.push(`Night ${g.round}: ${summary}`);
  if(!win(g))reset(g,'day');
@@ -70,7 +70,7 @@ function progress(g) {
 }
 function nextNight(g) {g.round++;g.players.forEach(p=>p.silenced=false);g.actions={};g.nominees=[];g.pending=null;g.nominations={};g.votes={};beginNight(g)}
 function skipBlock(g,reason) {g.log.push(`Day ${g.round}: ${reason} No one was eliminated.`);nextNight(g)}
-function finishVote(g,save){const p=g.players.find(p=>p.id===g.pending);if(!p)return;if(save){g.judgeUsed=true;g.log.push(`The Judge overturned the vote. ${p.name} was spared.`)}else{p.alive=false;g.log.push(`${p.name} was eliminated by the town.`)}g.pending=null;if(!win(g)){nextNight(g)}}
+function finishVote(g,save){const p=g.players.find(p=>p.id===g.pending);if(!p)return;if(save){g.judgeUsed=true;g.log.push(`The Judge overturned the vote. ${p.name} was spared.`)}else{p.alive=false;g.log.push(`${p.name} was thrown off the bus.`)}g.pending=null;if(!win(g)){nextNight(g)}}
 export function act(g,token,type,data={}) {
  normalize(g);
  const p=g.players.find(p=>p.token===token);need(p,'Session expired. Rejoin the lobby.');const host=p.id===g.host;
@@ -82,7 +82,7 @@ export function act(g,token,type,data={}) {
  if(type==='skipBlock'){need(host,'Only the host can skip the block.');need(['day','nominate','secondary','vote'].includes(g.phase),'The block can only be skipped before the verdict.');skipBlock(g,'The host skipped the block.');return}
  if(type==='force'){need(host,'Only the host can continue for missing players.');need(['roles','night','day','nominate','secondary','vote','verdict'].includes(g.phase),'No phase to advance.');if(g.phase==='verdict')finishVote(g,false);else if(g.phase==='secondary'){g.nominees.push(alive(g).find(x=>x.id!==g.nominees[0]).id);g.votes={};reset(g,'vote')}else{g.ready=(g.phase==='night'?nightParticipants(g):g.phase==='vote'?eligibleVoters(g):alive(g)).map(p=>p.id);progress(g)}return}
  need(p.alive,'You are a spectator for the rest of this game.');
- if(type==='kazee'){need(p.role==='Kazee'&&['day','nominate','secondary','vote','verdict'].includes(g.phase),'Kazee can act only during the day.');const t=alive(g).find(x=>x.id===data.target&&x.id!==p.id);need(t,'Choose another living player.');p.alive=false;t.alive=false;g.log.push(`${p.name} sacrificed themselves and eliminated ${t.name}.`);if(!win(g)){if(['secondary','vote','verdict'].includes(g.phase)){g.pending=null;g.nominees=[];g.nominations={};reset(g,'nominate')}else progress(g)}return}
+ if(type==='kazee'){need(p.role==='Kazee'&&['day','nominate','secondary','vote','verdict'].includes(g.phase),'Kazee can act only during the day.');const t=alive(g).find(x=>x.id===data.target&&x.id!==p.id);need(t,'Choose another living player.');p.alive=false;t.alive=false;g.log.push(`${p.name} kazzeed ${t.name} for the love of the game.`);if(!win(g)){if(['secondary','vote','verdict'].includes(g.phase)){g.pending=null;g.nominees=[];g.nominations={};reset(g,'nominate')}else progress(g)}return}
  if(type==='judge'){need(g.phase==='verdict'&&p.role==='Judge'&&!g.judgeUsed,'No Judge decision is available.');finishVote(g,!!data.save);return}
  need(!g.ready.includes(p.id),'Your choice is already locked in.');
  if(type==='ready'){need(['roles','day'].includes(g.phase),'Cannot continue yet.');g.ready.push(p.id)}
