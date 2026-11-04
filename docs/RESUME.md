@@ -8,7 +8,7 @@ Use the project to describe concrete implementation decisions. Select bullets th
 
 React · TypeScript · JavaScript · Cloudflare Workers · D1/SQLite · Drizzle · Vite
 
-[Live demo](https://mafia-game-night-jf.jfriar606317.chatgpt.site) · [Source](https://github.com/JFriar11/Mafia)
+[Live demo](https://hawkmaf.jfriar606317.chatgpt.site) · [Source](https://github.com/JFriar11/Mafia)
 
 - Developed and deployed a mobile-friendly multiplayer web app with private roles, configurable recruitment, ordered night turns, nominations, and voting.
 - Implemented a server-authoritative game state machine and optimistic concurrency using revision-checked SQLite updates to prevent simultaneous player requests from overwriting shared state.
