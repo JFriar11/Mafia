@@ -4,6 +4,8 @@
 
 Originally a SwiftUI/Firebase project, Mafia evolved into a deployed web app with private player views, a server-authoritative game engine, and persistent shared lobbies. Players discuss in person while the app manages hidden roles, ordered night turns, recruitment, nominations, votes, and victory conditions.
 
+I built this to maximize the amount of players. The one downside to playing Mafia on the bus is not everyone can play since one person has to narrate the game. This takes out that element and allows everyone to play.
+
 **[Play the live app](https://hawkmaf.jfriar606317.chatgpt.site)** · [Architecture walkthrough](docs/ARCHITECTURE.md) · [Development and full rules](web/README.md)
 
 ## What the project demonstrates
