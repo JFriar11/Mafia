@@ -22,7 +22,7 @@ Originally a SwiftUI/Firebase project, Mafia evolved into a deployed web app wit
 3. The host chooses one role per player and a separate recruitment allowance for the Godfather.
 4. Everyone privately reveals their role. The app guides the table through the game.
 
-Night groups act in order: **Mafia → Cops → Vis → Medic → Diddy**. Empty groups and spent Vis powers are skipped; Medic wakes only after a kill attempt. Recruited players join Mafia discussion and still take their original role’s turn.
+Night groups act in order: **Mafia → Cops → Vis → Medic → Silencer**. Empty groups and spent Vis powers are skipped; Medic wakes only after a kill attempt. Recruited players join Mafia discussion and still take their original role’s turn.
 
 During the day, the first player with two nominations goes on the block and chooses a second nominee. Those two players cannot vote. The Judge may overturn a verdict once per game, and the host may skip the block before the verdict. Town wins when no Mafia remain; Mafia wins when it equals or outnumbers Town.
 
