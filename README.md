@@ -1,6 +1,6 @@
-# Mafia — Game Night
+# Mafia
 
-**A multiplayer social-deduction game that brings a room of friends together through their phones.**
+**A multiplayer game that brings a room of friends together through their phones.**
 
 Originally a SwiftUI/Firebase project, Mafia evolved into a deployed web app with private player views, a server-authoritative game engine, and persistent shared lobbies. Players discuss in person while the app manages hidden roles, ordered night turns, recruitment, nominations, votes, and victory conditions.
 
